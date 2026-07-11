@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Doceria Docerê • Delivery</title>
+    <link href="./favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
+
+    </link>
+</head>
+
+<body class="bg-zinc-50">
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="px-6 py-4 flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-x-3 cursor-pointer" onclick="openStoreInfoModal()"
+                    title="Informações da loja">
+                    <img alt="Doceria Docerê"
+                        class="w-12 h-12 rounded-full object-cover ring-2 ring-offset-2 ring-amber-400 shadow-md"
+                        src="logo-docere.jpg" />
+                    <div>
+                        <span class="logo-font text-3xl font-bold tracking-tighter text-zinc-900">Docerê</span>
+                        <span class="logo-font text-3xl font-bold tracking-tighter text-red-600">Doceria</span>
+                    </div>
+                </div>
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-8 hidden md:block">
+                    <div class="relative group">
+                        <input
+                            class="w-full bg-zinc-100 border border-zinc-200 focus:border-red-300 pl-11 py-3 rounded-3xl text-sm outline-none transition-all"
+                            id="search-input" onkeyup="filterProducts()"
+                            placeholder="Buscar bolos, minizinhos, brigadeiros..." type="text" />
+                        <i class="fa-solid fa-search absolute left-4 top-3.5 text-zinc-400"></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-x-2">
+                    <!-- Admin Button -->
+                    <a class="hidden md:flex items-center gap-x-2 px-4 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-3xl transition-colors"
+                        href="../admin/">
+                        <i class="fa-solid fa-cog mr-1.5"></i>
+                        <span>Admin</span>
+                    </a>
+                    <!-- Cart Button -->
+                    <button
+                        class="flex items-center gap-x-2 bg-white border border-zinc-200 hover:border-red-200 px-5 py-2.5 rounded-3xl text-sm font-semibold transition-all active:scale-[0.985]"
+                        onclick="openCartModal()">
+                        <div class="relative">
+                            <i class="fa-solid fa-shopping-bag text-xl text-zinc-700"></i>
+                            <span
+                                class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full"
+                                id="cart-count-badge">0</span>
+                        </div>
+                        <span class="hidden sm:inline font-semibold">Carrinho</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- HERO BANNER -->
+    <div class="max-w-screen-2xl mx-auto px-6 pt-8">
+        <div class="relative h-[280px] md:h-[320px] rounded-3xl overflow-hidden shadow-xl cursor-pointer"
+            onclick="openStoreInfoModal()" title="Conheça mais sobre a Doceria Docerê">
+            <img alt="Interior aconchegante da Doceria Docerê"
+                class="absolute inset-0 w-full h-full object-cover brightness-[0.65]"
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3wuwrBMiGyHkNrRDFI4BBfNpiNyLKmZ1QOwgc2p2RtKjeDXHD0924WOhY&amp;s=10" />
+            <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 p-8 md:p-10 text-white max-w-lg">
+                <div class="flex items-center gap-x-3 mb-3">
+                    <div class="px-3.5 py-1 bg-white/95 backdrop-blur text-red-600 text-xs font-bold tracking-[1px] rounded-full flex items-center gap-x-1.5 cursor-pointer"
+                        id="hero-status-badge" onclick="openStoreInfoModal()">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                    <div class="text-xs bg-white/20 backdrop-blur px-3 py-1 rounded-full">30 min • mín. R$ 10</div>
+                </div>
+                <h1 class="text-5xl md:text-6xl font-bold tracking-tighter leading-none mb-2">Doceria Docerê</h1>
+                <p class="text-lg text-white/90">Doces artesanais feitos com carinho desde 2018</p>
+                <div class="flex items-center gap-x-4 mt-5">
+                    <div class="flex items-center text-sm">
+                        <i class="fa-solid fa-clock mr-2"></i>
+                        <span>11h às 18h30</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Floating info card -->
+            <div
+                class="absolute top-6 right-6 bg-white/95 backdrop-blur-md shadow-xl rounded-2xl p-4 hidden lg:block w-72">
+                <div class="flex items-center gap-x-3">
+                    <div>
+                        <div class="font-semibold text-zinc-900">Entrega rápida</div>
+                        <div class="text-xs text-zinc-500">Taxa calculada por bairro</div>
+                    </div>
+                    <div class="ml-auto text-right">
+                        <div class="text-emerald-600 text-xs font-bold">+ de 2.400</div>
+                        <div class="text-[10px] text-zinc-500 -mt-0.5">pedidos entregues</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- CATEGORIES -->
+    <div class="max-w-screen-2xl mx-auto px-6 pt-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="section-header">Nossos Catálogos</h2>
+            <button class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-x-1"
+                onclick="resetFilters()">
+                <i class="fa-solid fa-undo text-xs"></i>
+                <span>Limpar filtros</span>
+            </button>
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x" id="categories-container">
+            <!-- Populated dynamically via JS -->
+        </div>
+    </div>
+    <!-- CATÁLOGOS E PRODUTOS -->
+    <div class="max-w-screen-2xl mx-auto px-6 pb-24">
+        <div class="flex items-end justify-between mb-5">
+            <div>
+                <h2 class="section-header" id="products-section-title">Nossos Catálogos</h2>
+                <p class="text-sm text-zinc-500" id="products-count"></p>
+            </div>
+        </div>
+        <div class="space-y-14" id="products-grid">
+            <!-- Catalog sections (header + responsive grid) populated dynamically by JS -->
+        </div>
+        <div class="hidden text-center py-12" id="no-results">
+            <i class="fa-solid fa-search text-4xl text-zinc-300 mb-3"></i>
+            <p class="text-zinc-500">Nenhum produto encontrado com esse termo.</p>
+        </div>
+    </div>
+    <!-- FLOATING CART (mobile) -->
+    <div class="md:hidden fixed bottom-5 right-5 z-40">
+        <button
+            class="bg-red-600 hover:bg-red-700 active:bg-red-800 transition-all shadow-xl text-white w-14 h-14 rounded-2xl flex items-center justify-center relative"
+            onclick="openCartModal()">
+            <i class="fa-solid fa-shopping-bag text-2xl"></i>
+            <span
+                class="absolute -top-1 -right-1 bg-white text-red-600 text-[10px] font-extrabold w-5 h-5 flex items-center justify-center rounded-full border-2 border-red-600"
+                id="cart-count-badge-mobile">0</span>
+        </button>
+    </div>
+    <!-- PRODUCT DETAIL MODAL -->
+    <div class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center"
+        id="product-modal" onclick="if (event.target.id === 'product-modal') closeProductModal()">
+        <div class="bg-white w-full md:w-[480px] md:rounded-3xl md:m-4 rounded-t-3xl overflow-hidden modal"
+            onclick="event.stopImmediatePropagation()">
+            <!-- Modal Header -->
+            <div class="relative">
+                <img alt="" class="w-full h-72 object-cover" id="modal-product-image" />
+                <button
+                    class="absolute top-4 right-4 bg-white/90 hover:bg-white w-9 h-9 flex items-center justify-center rounded-full shadow"
+                    onclick="closeProductModal()">
+                    <i class="fa-solid fa-times text-xl text-zinc-700"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-2xl font-bold text-zinc-900 tracking-tight" id="modal-product-name"></h3>
+                        <p class="text-red-600 text-sm font-semibold mt-0.5" id="modal-product-catalog"></p>
+                    </div>
+                    <div class="text-right" id="modal-product-price">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <div class="mt-4 text-zinc-600 leading-relaxed text-[15px]" id="modal-product-description">
+                </div>
+                <!-- Quantity -->
+                <div class="mt-6 flex items-center justify-between bg-zinc-50 rounded-2xl p-1">
+                    <div class="px-4">
+                        <span class="text-xs uppercase tracking-widest text-zinc-500 font-medium">Quantidade</span>
+                    </div>
+                    <div class="flex items-center bg-white shadow-sm rounded-2xl border">
+                        <button
+                            class="w-10 h-10 flex items-center justify-center text-xl font-light active:bg-zinc-100 rounded-l-2xl"
+                            onclick="changeModalQuantity(-1)">-</button>
+                        <div class="w-10 text-center font-semibold text-lg tabular-nums" id="modal-quantity">1</div>
+                        <button
+                            class="w-10 h-10 flex items-center justify-center text-xl font-light active:bg-zinc-100 rounded-r-2xl"
+                            onclick="changeModalQuantity(1)">+</button>
+                    </div>
+                </div>
+                <button
+                    class="mt-6 w-full bg-red-600 hover:bg-red-700 active:bg-red-800 transition-colors text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-x-2 text-base"
+                    onclick="addCurrentProductToCart()">
+                    <i class="fa-solid fa-cart-plus"></i>
+                    <span>Adicionar ao Carrinho</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- CART MODAL -->
+    <div class="hidden fixed inset-0 bg-black/60 backdrop-blur z-[110] flex justify-end" id="cart-modal"
+        onclick="if (event.target.id === 'cart-modal') closeCartModal()">
+        <div class="bg-white w-full max-w-md h-full cart-drawer flex flex-col"
+            onclick="event.stopImmediatePropagation()">
+            <div class="px-6 pt-6 pb-4 border-b flex items-center justify-between">
+                <div>
+                    <span class="font-bold text-2xl">Seu Carrinho</span>
+                </div>
+                <button class="text-3xl leading-none text-zinc-400 hover:text-zinc-600"
+                    onclick="closeCartModal()">×</button>
+            </div>
+            <div class="flex-1 overflow-auto p-6 space-y-4" id="cart-items">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="border-t p-6 bg-zinc-50">
+                <div class="flex justify-between items-baseline mb-1 px-1">
+                    <span class="text-zinc-600">Subtotal</span>
+                    <span class="font-semibold text-xl tabular-nums" id="cart-subtotal"></span>
+                </div>
+                <button
+                    class="mt-4 w-full bg-zinc-900 hover:bg-black active:bg-zinc-950 transition-colors text-white font-semibold py-[17px] rounded-2xl text-base flex items-center justify-center gap-x-2"
+                    onclick="proceedToCheckout()">
+                    <span>Finalizar Pedido</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <p class="text-center text-[10px] text-zinc-400 mt-3">Os preços já incluem impostos</p>
+            </div>
+        </div>
+    </div>
+    <!-- CHECKOUT MODAL -->
+    <div class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[120] flex items-center justify-center p-4"
+        id="checkout-modal" onclick="if (event.target.id === 'checkout-modal') closeCheckoutModal()">
+        <div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden modal shadow-2xl"
+            onclick="event.stopImmediatePropagation()">
+            <div class="px-6 py-5 border-b flex items-center">
+                <button class="mr-4 text-zinc-400 hover:text-zinc-600" onclick="closeCheckoutModal()">
+                    <i class="fa-solid fa-arrow-left text-xl"></i>
+                </button>
+                <span class="font-bold text-xl">Finalizar Pedido</span>
+            </div>
+            <div class="p-6 space-y-6 max-h-[75vh] overflow-auto">
+                <!-- Customer Info -->
+                <div>
+                    <label class="block text-xs font-semibold tracking-wider text-zinc-500 mb-1.5">SEUS DADOS</label>
+                    <div class="space-y-3">
+                        <input
+                            class="w-full border border-zinc-200 focus:border-red-300 px-4 py-3 rounded-2xl text-sm outline-none"
+                            id="customer-name" placeholder="Nome completo" type="text" />
+                        <input
+                            class="w-full border border-zinc-200 focus:border-red-300 px-4 py-3 rounded-2xl text-sm outline-none"
+                            id="customer-phone" oninput="maskPhone(this)" placeholder="(81) 99999-9999" type="tel" />
+                    </div>
+                </div>
+                <!-- Payment Method -->
+                <div>
+                    <label class="block text-xs font-semibold tracking-wider text-zinc-500 mb-2">FORMA DE
+                        PAGAMENTO</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="payment-option cursor-pointer border border-zinc-200 hover:border-red-200 active:bg-red-50 px-3 py-3 rounded-2xl text-center text-sm font-medium"
+                            onclick="selectPaymentMethod(this, 'Cartão de Crédito')">
+                            <i class="fa-regular fa-credit-card mb-1 block text-lg"></i>
+                            <span>Crédito</span>
+                        </div>
+                        <div class="payment-option cursor-pointer border border-zinc-200 hover:border-red-200 active:bg-red-50 px-3 py-3 rounded-2xl text-center text-sm font-medium"
+                            onclick="selectPaymentMethod(this, 'Cartão de Débito')">
+                            <i class="fa-solid fa-credit-card mb-1 block text-lg"></i>
+                            <span>Débito</span>
+                        </div>
+                        <div class="payment-option cursor-pointer border border-zinc-200 hover:border-red-200 active:bg-red-50 px-3 py-3 rounded-2xl text-center text-sm font-medium"
+                            onclick="selectPaymentMethod(this, 'PIX')">
+                            <i class="fa-brands fa-pix mb-1 block text-lg text-emerald-600"></i>
+                            <span>PIX</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pickup Method -->
+                <div>
+                    <label class="block text-xs font-semibold tracking-wider text-zinc-500 mb-2">COMO DESEJA
+                        RECEBER?</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <!-- Delivery -->
+                        <div class="pickup-option cursor-pointer border-2 border-red-600 bg-red-50 px-3 py-[13px] rounded-2xl text-center text-sm font-semibold flex flex-col items-center justify-center"
+                            onclick="selectPickupMethod(this, 'delivery')">
+                            <i class="fa-solid fa-motorcycle text-xl mb-1 text-red-600"></i>
+                            <span>Entrega</span>
+                            <span class="text-[10px] text-red-600/70">Domiciliar</span>
+                        </div>
+                        <!-- Retirada -->
+                        <div class="pickup-option cursor-pointer border border-zinc-200 hover:border-zinc-300 px-3 py-[13px] rounded-2xl text-center text-sm font-semibold flex flex-col items-center justify-center"
+                            onclick="selectPickupMethod(this, 'pickup')">
+                            <i class="fa-solid fa-store text-xl mb-1"></i>
+                            <span>Retirada</span>
+                            <span class="text-[10px] text-zinc-500">na loja</span>
+                        </div>
+                        <!-- Consume on site -->
+                        <div class="pickup-option cursor-pointer border border-zinc-200 hover:border-zinc-300 px-3 py-[13px] rounded-2xl text-center text-sm font-semibold flex flex-col items-center justify-center"
+                            onclick="selectPickupMethod(this, 'onsite')">
+                            <i class="fa-solid fa-chair text-xl mb-1"></i>
+                            <span>Consumir</span>
+                            <span class="text-[10px] text-zinc-500">no local</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- DELIVERY SECTION (shown only when delivery selected) -->
+                <div class="hidden border border-red-100 bg-red-50/40 rounded-2xl p-4 space-y-4" id="delivery-section">
+                    <div class="flex items-center justify-between">
+                        <div class="font-semibold text-red-700 flex items-center gap-x-2 text-sm">
+                            <i class="fa-solid fa-map-marker-alt"></i>
+                            <span>ENTREGA A DOMICÍLIO</span>
+                        </div>
+                    </div>
+                    <!-- Location share -->
+                    <button
+                        class="w-full flex items-center justify-center gap-x-2 bg-white border border-red-200 hover:bg-red-50 text-red-700 font-semibold py-3 rounded-2xl text-sm transition-colors"
+                        onclick="shareLocationForDelivery()">
+                        <i class="fa-solid fa-location-arrow"></i>
+                        <span>Compartilhar minha localização atual</span>
+                    </button>
+                    <div class="hidden text-xs bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl flex items-center gap-x-2"
+                        id="location-status">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span>Localização confirmada no mapa</span>
+                    </div>
+                    <!-- Botão para redefinir localização (aparece após confirmação) -->
+                    <div class="hidden" id="reset-location-btn">
+                        <button
+                            class="text-xs text-red-600 hover:text-red-700 flex items-center gap-x-1.5 font-medium transition-colors"
+                            onclick="resetDeliveryLocation()">
+                            <i class="fa-solid fa-redo fa-sm"></i>
+                            <span>Redefinir localização no mapa</span>
+                        </button>
+                    </div>
+                    <!-- Address fields -->
+                    <div class="space-y-3 pt-1">
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 block mb-1">Rua / Avenida + Bairro <span
+                                    class="text-red-500">*</span> <span class="text-[10px] text-emerald-600">(preenchido
+                                    automaticamente via GPS)</span></label>
+                            <input
+                                class="w-full border border-zinc-200 px-4 py-2.5 text-sm rounded-2xl outline-none focus:border-red-300"
+                                id="endereco-input" oninput="updateFreteDisplay()"
+                                placeholder="Será preenchido automaticamente após confirmar no mapa" type="text" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-medium text-zinc-600 block mb-1">Número da casa *</label>
+                                <input
+                                    class="w-full border border-zinc-200 px-4 py-2.5 text-sm rounded-2xl outline-none focus:border-red-300"
+                                    id="numero-input" placeholder="114" type="text" />
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium text-zinc-600 block mb-1">Complemento *</label>
+                                <input
+                                    class="w-full border border-zinc-200 px-4 py-2.5 text-sm rounded-2xl outline-none focus:border-red-300"
+                                    id="complemento-input" placeholder="Apto 302, Bloco B" type="text" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-zinc-600 block mb-1">Ponto de referência *</label>
+                            <input
+                                class="w-full border border-zinc-200 px-4 py-2.5 text-sm rounded-2xl outline-none focus:border-red-300"
+                                id="referencia-input" placeholder="Próximo ao mercado São José" type="text" />
+                        </div>
+                    </div>
+                    <!-- Frete display -->
+                    <div class="hidden bg-white border border-red-100 rounded-2xl px-4 py-3 text-sm" id="frete-display">
+                        <div class="flex justify-between items-center">
+                            <span class="text-zinc-600">Taxa de entrega</span>
+                            <span class="font-bold text-red-600" id="frete-value"></span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Order Summary -->
+                <div class="bg-zinc-900 text-white rounded-2xl p-5">
+                    <div class="text-xs uppercase tracking-[1.5px] text-white/60 mb-3 px-1">RESUMO DO PEDIDO</div>
+                    <div class="space-y-1 text-sm" id="checkout-summary">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="border-t border-white/20 my-3"></div>
+                    <div class="flex justify-between items-center px-1">
+                        <span class="font-semibold">Total a pagar</span>
+                        <span class="font-bold text-2xl tabular-nums" id="checkout-total"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 pt-0">
+                <button
+                    class="whatsapp-btn w-full text-white font-extrabold py-4 rounded-2xl flex items-center justify-center gap-x-3 text-base shadow-lg active:scale-[0.985]"
+                    onclick="finalizeOrder()">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                    <span>ENVIAR PEDIDO NO WHATSAPP</span>
+                </button>
+                <p class="text-center text-[10px] text-zinc-400 mt-3">Você será redirecionado para o WhatsApp da loja
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- MAP MODAL (for location confirmation) -->
+    <div class="hidden fixed inset-0 bg-black/70 z-[130] flex items-center justify-center p-4" id="map-modal"
+        onclick="if (event.target.id === 'map-modal') closeMapModal()">
+        <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden" onclick="event.stopImmediatePropagation()">
+            <div class="px-5 py-4 flex justify-between items-center border-b">
+                <span class="font-semibold">Confirme sua localização</span>
+                <button class="text-2xl leading-none text-zinc-400" onclick="closeMapModal()">×</button>
+            </div>
+            <div class="bg-zinc-200" id="map" style="height: 380px; width: 100%;"></div>
+            <div class="p-4 bg-zinc-50 flex gap-3">
+                <button
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 transition text-white font-semibold py-3 rounded-2xl text-sm"
+                    onclick="confirmMapLocation()">
+                    Confirmar esta posição no mapa
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- STORE INFO MODAL -->
+    <div class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[140] flex items-end md:items-center justify-center p-4"
+        id="store-info-modal" onclick="if (event.target.id === 'store-info-modal') closeStoreInfoModal()">
+        <div class="bg-white w-full max-w-lg md:rounded-3xl rounded-t-3xl overflow-hidden modal shadow-2xl"
+            onclick="event.stopImmediatePropagation()">
+            <!-- Red Header -->
+            <div class="bg-red-600 text-white px-6 py-5 flex items-center gap-x-3">
+                <div class="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-shopping-bag text-2xl"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-2xl tracking-tight">Doceria Docerê</span>
+                </div>
+            </div>
+            <div class="p-6 space-y-6 max-h-[75vh] overflow-auto">
+                <!-- Info pills -->
+                <div class="flex flex-wrap gap-2">
+                    <div
+                        class="flex-1 min-w-[110px] bg-zinc-100 rounded-2xl px-4 py-2.5 text-sm flex items-center gap-x-2">
+                        <i class="fa-solid fa-motorcycle text-red-600"></i>
+                        <span class="font-medium">Entrega R$ 8,00</span>
+                    </div>
+                    <div
+                        class="flex-1 min-w-[110px] bg-zinc-100 rounded-2xl px-4 py-2.5 text-sm flex items-center gap-x-2">
+                        <i class="fa-solid fa-clock text-red-600"></i>
+                        <span class="font-medium">30-40 min</span>
+                    </div>
+                    <div
+                        class="flex-1 min-w-[110px] bg-zinc-100 rounded-2xl px-4 py-2.5 text-sm flex items-center gap-x-2">
+                        <i class="fa-solid fa-wallet text-red-600"></i>
+                        <span class="font-medium">Mín. R$ 10,00</span>
+                    </div>
+                </div>
+                <!-- Opções de entrega -->
+                <div>
+                    <h4 class="font-semibold text-sm tracking-wider text-zinc-500 mb-3">OPÇÕES DE ENTREGA</h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="border border-zinc-200 rounded-2xl p-3 text-center">
+                            <i class="fa-solid fa-motorcycle text-2xl text-red-600 mb-1.5"></i>
+                            <div class="font-semibold text-sm">Delivery</div>
+                            <div class="text-[10px] text-zinc-500">Domiciliar</div>
+                        </div>
+                        <div class="border border-zinc-200 rounded-2xl p-3 text-center">
+                            <i class="fa-solid fa-store text-2xl text-red-600 mb-1.5"></i>
+                            <div class="font-semibold text-sm">Retirada</div>
+                            <div class="text-[10px] text-zinc-500">na loja</div>
+                        </div>
+                        <div class="border border-zinc-200 rounded-2xl p-3 text-center">
+                            <i class="fa-solid fa-chair text-2xl text-red-600 mb-1.5"></i>
+                            <div class="font-semibold text-sm">Consumir</div>
+                            <div class="text-[10px] text-zinc-500">no local</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Horário de funcionamento -->
+                <div>
+                    <!-- Dynamic Open/Closed Status Badge -->
+                    <div class="mb-4" id="store-status-badge">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                    <h4 class="font-semibold text-sm tracking-wider text-zinc-500 mb-3">HORÁRIO DE FUNCIONAMENTO</h4>
+                    <div class="bg-zinc-50 rounded-2xl p-4 text-sm space-y-1.5">
+                        <div class="flex justify-between"><span class="text-zinc-600">Terça</span> <span>11:00 às
+                                18:00</span></div>
+                        <div class="flex justify-between"><span class="text-zinc-600">Quarta</span> <span>11:00 às
+                                18:30</span></div>
+                        <div class="flex justify-between"><span class="text-zinc-600">Quinta</span> <span>11:00 às
+                                18:30</span></div>
+                        <div class="flex justify-between"><span class="text-zinc-600">Sexta</span> <span>11:00 às
+                                18:30</span></div>
+                        <div class="flex justify-between"><span class="text-zinc-600">Sábado</span> <span>11:00 às
+                                17:00</span></div>
+                        <div class="pt-1 text-xs text-zinc-400">• Fechado aos domingos e segundas-feiras</div>
+                    </div>
+                </div>
+                <!-- Formas de Pagamento -->
+                <div>
+                    <h4 class="font-semibold text-sm tracking-wider text-zinc-500 mb-3">FORMAS DE PAGAMENTO</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-4 py-1.5 bg-white border border-zinc-200 rounded-2xl text-sm font-medium">Cartão
+                            de Crédito</span>
+                        <span class="px-4 py-1.5 bg-white border border-zinc-200 rounded-2xl text-sm font-medium">Cartão
+                            de Débito</span>
+                        <span
+                            class="px-4 py-1.5 bg-white border border-zinc-200 rounded-2xl text-sm font-medium flex items-center gap-x-1.5">
+                            <i class="fa-brands fa-pix text-emerald-600"></i>
+                            <span>PIX</span>
+                        </span>
+                    </div>
+                </div>
+                <!-- Onde estamos & Contato -->
+                <div class="pt-2 border-t">
+                    <h4 class="font-semibold text-sm tracking-wider text-zinc-500 mb-3">ONDE ESTAMOS &amp; CONTATO</h4>
+                    <!-- Endereço -->
+                    <div class="flex gap-3 mb-4">
+                        <div class="mt-0.5 text-red-600">
+                            <i class="fa-solid fa-map-marker-alt text-xl"></i>
+                        </div>
+                        <div class="flex-1 text-sm">
+                            <div class="font-medium">Avenida Dois Rios, 79 - Ibura, Recife - PE</div>
+                            <div class="text-zinc-500">Recife - PE, 51230-000</div>
+                        </div>
+                    </div>
+                    <!-- WhatsApp -->
+                    <a class="flex items-center gap-x-3 mb-3 group" href="#" id="modal-whatsapp-link" target="_blank">
+                        <div
+                            class="w-9 h-9 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i class="fa-brands fa-whatsapp text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-zinc-500">WhatsApp</div>
+                            <div class="font-semibold text-emerald-700 group-hover:underline"
+                                id="modal-whatsapp-number">(81) 99999-9999</div>
+                        </div>
+                    </a>
+                    <!-- Instagram -->
+                    <a class="flex items-center gap-x-3 group" href="https://www.instagram.com/doceriadocere/"
+                        target="_blank">
+                        <div
+                            class="w-9 h-9 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i class="fa-brands fa-instagram text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-zinc-500">Instagram</div>
+                            <div class="font-semibold text-pink-700 group-hover:underline">@doceriadocere</div>
+                        </div>
+                    </a>
+                </div>
+                <!-- Legal -->
+                <div class="text-[10px] text-zinc-400 pt-3 border-t">
+                    Razão Social: Doceria Docerê<br />
+                    CNPJ: 15.296.830/0001-22
+                </div>
+            </div>
+            <div class="p-4 bg-zinc-50 flex justify-end border-t">
+                <button class="px-6 py-2 text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition-colors"
+                    onclick="closeStoreInfoModal()">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Toast -->
+    <div class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-zinc-900 text-white px-5 py-3 rounded-3xl shadow-xl text-sm flex items-center gap-x-2 z-[200]"
+        id="toast">
+        <i class="fa-solid fa-check-circle text-emerald-400"></i>
+        <span id="toast-message"></span>
+    </div>
+    <script src="../config.js"></script>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t mt-12">
+        <div
+            class="max-w-screen-2xl mx-auto px-6 py-8 text-center text-xs text-zinc-500 flex flex-col md:flex-row items-center justify-center gap-x-2 gap-y-1">
+            <span>© Todos os direitos reservados</span>
+            <span class="hidden md:inline">•</span>
+            <span class="flex items-center gap-x-1.5">
+                Site desenvolvido por <strong class="text-zinc-700">Lucas Renan</strong>
+                <a class="text-pink-600 hover:text-pink-700" href="https://www.instagram.com/l7._081/" target="_blank">
+                    <i class="fa-brands fa-instagram text-base"></i>
+                </a>
+            </span>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+
+</html>

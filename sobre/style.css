@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:wght@700&amp;display=swap');
+
+        :root {
+            --primary: #DC2626;
+        }
+
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+
+        .logo-font {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
+        }
+
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .category-pill {
+            transition: all 0.2s ease;
+        }
+
+        .category-pill.active {
+            background-color: #DC2626;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgb(220 38 38 / 0.3);
+        }
+
+        .modal {
+            animation: modalPopIn 0.2s ease forwards;
+        }
+
+        @keyframes modalPopIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .food-shadow {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        .section-header {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .price-tag {
+            font-weight: 700;
+            color: #DC2626;
+        }
+
+        .cart-drawer {
+            box-shadow: -10px 0 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .nav-active {
+            color: #DC2626;
+            font-weight: 600;
+        }
+
+        .product-img {
+            transition: transform 0.4s ease;
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.08);
+        }
+
+        .whatsapp-btn {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            transition: all 0.3s ease;
+        }
+
+        .whatsapp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(37 211 102 / 0.4);
+        }
+
+        .dessert-bg {
+            background: linear-gradient(135deg, #FFF5F5 0%, #FFFFFF 100%);
+        }

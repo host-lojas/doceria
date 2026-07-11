@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin • Doceria Docerê</title>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+
+<body class="bg-zinc-950 text-zinc-200">
+    <div class="max-w-screen-xl mx-auto">
+        <!-- Top Navigation -->
+        <div class="admin-header px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between border-b border-white/10">
+            <div class="flex items-center gap-x-3">
+                <div class="w-10 h-10 bg-red-600 rounded-2xl flex items-center justify-center shadow-inner">
+                    <i class="fa-solid fa-store text-white text-xl"></i>
+                </div>
+                <div>
+                    <span class="logo-font font-semibold text-3xl tracking-tighter">Docerê</span>
+                    <span class="logo-font font-semibold text-3xl tracking-tighter text-red-500">Admin</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-x-2">
+                <!-- Back to site -->
+                <a href="../sobre/"
+                    class="flex items-center gap-x-2 px-4 py-2 text-sm bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-2xl transition-all">
+                    <i class="fa-solid fa-arrow-left text-sm"></i>
+                    <span class="hidden sm:inline font-medium">Voltar ao site</span>
+                </a>
+
+                <!-- Status -->
+                <div
+                    class="px-3.5 py-1.5 bg-white/5 rounded-2xl text-xs flex items-center gap-x-2 border border-white/10">
+                    <div class="w-2 h-2 bg-emerald-400 rounded-full status-dot"></div>
+                    <span id="supabase-status" class="font-medium text-zinc-300">Verificando...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="login-gate" class="max-w-[380px] mx-4 sm:mx-auto mt-12 sm:mt-20">
+            <div class="bg-zinc-900 border border-white/10 rounded-3xl p-8 shadow-2xl">
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-16 h-16 bg-red-600/10 rounded-2xl flex items-center justify-center mb-5">
+                        <i class="fa-solid fa-lock text-red-500 text-3xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-semibold tracking-tighter">Área Administrativa</h1>
+                    <p class="text-zinc-400 mt-1.5 text-sm">Acesso restrito • Doceria Docerê</p>
+                </div>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-xs font-semibold tracking-[1.5px] text-zinc-400 block mb-2">SENHA DE
+                            ACESSO</label>
+                        <input id="admin-password" type="password" placeholder="••••••••"
+                            class="w-full bg-zinc-950 border border-white/20 focus:border-red-500 px-4 py-3.5 rounded-2xl text-sm outline-none transition-all">
+                    </div>
+
+                    <button onclick="loginAdmin()"
+                        class="modern-btn w-full bg-red-600 hover:bg-red-700 active:bg-red-800 py-4 rounded-2xl font-semibold text-base flex items-center justify-center gap-x-2 shadow-lg shadow-red-600/30">
+                        <span>Entrar no Painel</span>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-center text-[10px] text-zinc-500 mt-6">Painel seguro • Apenas administradores</p>
+        </div>
+
+        <!-- Main Admin Panel -->
+        <div id="admin-panel" class="hidden px-4 sm:px-6 lg:px-8 pb-16">
+
+            <!-- Page Header -->
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-y-4 mt-8 mb-7">
+                <div>
+                    <h2 class="text-4xl font-semibold tracking-tighter">Gerenciar Cardápio</h2>
+                    <p class="text-zinc-400 mt-1">Catálogos e produtos sincronizados com Supabase</p>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Backup group -->
+                    <div class="flex items-center bg-zinc-900 border border-white/10 rounded-2xl p-1">
+                        <button onclick="exportBackup()"
+                            class="modern-btn flex items-center gap-x-2 px-4 py-2 text-sm hover:bg-white/5 active:bg-white/10 rounded-xl transition-all">
+                            <i class="fa-solid fa-download text-emerald-400"></i>
+                            <span class="hidden md:inline font-medium">Exportar</span>
+                        </button>
+
+                        <label
+                            class="modern-btn flex items-center gap-x-2 px-4 py-2 text-sm hover:bg-white/5 active:bg-white/10 rounded-xl cursor-pointer transition-all border-l border-white/10">
+                            <i class="fa-solid fa-upload text-emerald-400"></i>
+                            <span class="hidden md:inline font-medium">Importar</span>
+                            <input type="file" accept=".json" class="hidden" onchange="importBackup(event)">
+                        </label>
+                    </div>
+
+                    <button onclick="deleteAllData()"
+                        class="modern-btn flex items-center gap-x-2 px-4 py-2 text-sm bg-red-900/70 hover:bg-red-900 active:bg-red-950 text-red-200 border border-red-800/60 rounded-2xl transition-all">
+                        <i class="fa-solid fa-trash"></i>
+                        <span class="hidden md:inline font-medium">Apagar Tudo</span>
+                    </button>
+
+                    <button onclick="logoutAdmin()"
+                        class="modern-btn flex items-center gap-x-2 px-4 py-2 text-sm border border-white/20 hover:bg-white/5 active:bg-white/10 rounded-2xl transition-all">
+                        <i class="fa-solid fa-sign-out-alt"></i>
+                        <span class="hidden md:inline font-medium">Sair</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-white/10 mb-6">
+                <button onclick="switchTab(0)" id="tab-0"
+                    class="tab-btn active px-7 py-3.5 text-sm font-semibold border-b-[3px] border-red-500 text-red-400 flex items-center gap-x-2">
+                    <i class="fa-solid fa-folder text-base"></i>
+                    <span>Catálogos</span>
+                </button>
+                <button onclick="switchTab(1)" id="tab-1"
+                    class="tab-btn px-7 py-3.5 text-sm font-semibold text-zinc-400 hover:text-zinc-200 flex items-center gap-x-2">
+                    <i class="fa-solid fa-boxes text-base"></i>
+                    <span>Produtos</span>
+                </button>
+            </div>
+
+            <!-- CATALOGS TAB -->
+            <div id="tab-content-0">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-x-3">
+                        <span class="section-title">Seus Catálogos</span>
+                        <span id="catalog-count"
+                            class="text-xs px-2.5 py-1 bg-white/5 text-zinc-400 rounded-full font-mono"></span>
+                    </div>
+
+                    <button onclick="showCreateCatalogModal()"
+                        class="modern-btn bg-red-600 hover:bg-red-700 active:bg-red-800 px-5 py-2.5 text-sm rounded-2xl flex items-center gap-x-2 font-semibold shadow-lg shadow-red-600/40">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                        <span>Novo Catálogo</span>
+                    </button>
+                </div>
+
+                <div id="catalogs-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- PRODUCTS TAB -->
+            <div id="tab-content-1" class="hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-x-3">
+                        <span class="section-title">Produtos Cadastrados</span>
+                        <span id="product-count"
+                            class="text-xs px-2.5 py-1 bg-white/5 text-zinc-400 rounded-full font-mono"></span>
+                    </div>
+
+                    <button onclick="showCreateProductModal()"
+                        class="modern-btn bg-red-600 hover:bg-red-700 active:bg-red-800 px-5 py-2.5 text-sm rounded-2xl flex items-center gap-x-2 font-semibold shadow-lg shadow-red-600/40">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                        <span>Novo Produto</span>
+                    </button>
+                </div>
+
+                <!-- Products Table -->
+                <div class="bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+                    <div class="table-container overflow-x-auto">
+                        <table class="w-full text-sm min-w-[720px]">
+                            <thead>
+                                <tr class="bg-zinc-950 border-b border-white/10 text-xs text-zinc-400">
+                                    <th class="text-left px-6 py-4 font-medium w-[42%]">Produto</th>
+                                    <th class="text-left px-6 py-4 font-medium">Catálogo</th>
+                                    <th class="text-right px-6 py-4 font-medium">Preço</th>
+                                    <th class="text-center px-6 py-4 font-medium w-28">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body" class="divide-y divide-white/10 text-sm">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Catalog Modal -->
+    <div id="catalog-modal" onclick="if (event.target.id === 'catalog-modal') closeCatalogModal()"
+        class="hidden fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()"
+            class="bg-zinc-900 border border-white/10 w-full max-w-md rounded-3xl p-7 modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="catalog-modal-title" class="font-semibold text-2xl tracking-tight">Novo Catálogo</h3>
+            </div>
+
+            <input id="catalog-name" type="text" placeholder="Ex: Bolos no Pote"
+                class="w-full bg-zinc-950 border border-white/20 px-5 py-3.5 rounded-2xl text-base outline-none focus:border-red-500 mb-6">
+
+            <div class="flex gap-3">
+                <button onclick="closeCatalogModal()"
+                    class="flex-1 py-3.5 text-sm font-medium border border-white/20 rounded-2xl hover:bg-white/5 active:bg-white/10 transition">Cancelar</button>
+                <button onclick="saveCatalog()" id="catalog-save-btn"
+                    class="flex-1 py-3.5 text-sm font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-2xl transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" onclick="if (event.target.id === 'product-modal') closeProductModal()"
+        class="hidden fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()"
+            class="bg-zinc-900 border border-white/10 w-full max-w-lg rounded-3xl p-6 modal-content max-h-[92vh] overflow-y-auto">
+
+            <h3 id="product-modal-title" class="font-semibold text-2xl tracking-tight mb-6">Novo Produto</h3>
+
+            <div class="space-y-5">
+                <!-- Nome -->
+                <div>
+                    <label class="text-xs font-semibold tracking-widest text-zinc-400 block mb-1.5">NOME DO
+                        PRODUTO</label>
+                    <input id="product-name" type="text" placeholder="Bolo no Pote de Brigadeiro"
+                        class="w-full bg-zinc-950 border border-white/20 px-4 py-3 rounded-2xl text-sm outline-none focus:border-red-500">
+                </div>
+
+                <!-- Catálogo -->
+                <div>
+                    <label class="text-xs font-semibold tracking-widest text-zinc-400 block mb-1.5">CATÁLOGO</label>
+                    <select id="product-catalog"
+                        class="w-full bg-zinc-950 border border-white/20 px-4 py-3 rounded-2xl text-sm outline-none focus:border-red-500">
+                    </select>
+                </div>
+
+                <!-- Descrição -->
+                <div>
+                    <label class="text-xs font-semibold tracking-widest text-zinc-400 block mb-1.5">DESCRIÇÃO</label>
+                    <textarea id="product-description" rows="2" placeholder="Descreva o produto..."
+                        class="w-full bg-zinc-950 border border-white/20 px-4 py-3 rounded-2xl text-sm outline-none resize-y focus:border-red-500"></textarea>
+                </div>
+
+                <!-- Preços -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-semibold tracking-widest text-zinc-400 block mb-1.5">PREÇO
+                            (R$)</label>
+                        <input id="product-price" type="number" step="0.01" value="10.00"
+                            class="w-full bg-zinc-950 border border-white/20 px-4 py-3 rounded-2xl text-sm outline-none focus:border-red-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold tracking-widest text-zinc-400 block mb-1.5">PREÇO COM
+                            DESCONTO</label>
+                        <input id="product-discount" type="number" step="0.01" placeholder="Opcional"
+                            class="w-full bg-zinc-950 border border-white/20 px-4 py-3 rounded-2xl text-sm outline-none focus:border-red-500">
+                    </div>
+                </div>
+
+                <!-- Imagem -->
+                <div>
+                    <label class="text-xs font-semibold tracking-widest text-zinc-400 block mb-1.5">IMAGEM DO
+                        PRODUTO</label>
+
+                    <div class="flex gap-2 mb-2">
+                        <input type="file" id="product-image-file" accept="image/*" class="hidden"
+                            onchange="handleImageFileSelect()">
+                        <button type="button" onclick="document.getElementById('product-image-file').click()"
+                            class="flex-1 flex items-center justify-center gap-x-2 bg-zinc-800 hover:bg-zinc-700 border border-white/20 text-sm py-3 rounded-2xl transition">
+                            <i class="fa-solid fa-upload"></i>
+                            <span>Enviar do dispositivo</span>
+                        </button>
+                    </div>
+
+                    <div class="text-[10px] text-zinc-500 mb-2 px-1">ou cole uma URL abaixo</div>
+
+                    <input id="product-image" type="text" placeholder="https://..." oninput="previewProductImage()"
+                        class="w-full bg-zinc-950 border border-white/20 px-4 py-3 rounded-2xl text-sm outline-none focus:border-red-500">
+
+                    <div id="image-preview"
+                        class="mt-3 w-24 h-16 rounded-2xl overflow-hidden border border-white/10 hidden">
+                        <img id="preview-img" class="w-full h-full object-cover">
+                    </div>
+                    <div id="upload-status" class="text-xs mt-1.5 px-1 hidden"></div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeProductModal()"
+                    class="flex-1 py-3.5 text-sm font-medium border border-white/20 rounded-2xl hover:bg-white/5 active:bg-white/10 transition">Cancelar</button>
+                <button onclick="saveProduct()" id="product-save-btn"
+                    class="flex-1 py-3.5 text-sm font-semibold bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-2xl transition">Salvar
+                    Produto</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../config.js"></script>
+    <script src="script.js"></script>
+    
+</body>
+
+</html>
