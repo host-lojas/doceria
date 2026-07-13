@@ -4,10 +4,10 @@
 // Altere aqui as informações da sua loja
 
 const STORE_CONFIG = {
-  name: "Doceria Docerê",
-  whatsapp: "81985868107", // TODO: Coloque o número real da loja com DDD (apenas números, ex: 81981749601)
-  address: "Avenida Dois Rios, 79 - Ibura, Recife - PE",
-  cnpj: "15.296.630/0001-22",
+  name: "Doceria",
+  whatsapp: "81999999999", // TODO: Coloque o número real da loja com DDD (apenas números, ex: 81981749601)
+  address: "Avenida Dois Rios - Ibura, Recife - PE",
+  cnpj: "11.111.111/0001-11",
   // Horário de funcionamento (exibido na interface)
   hours: {
     "Segunda a Sexta": "11:00 às 18:30",
